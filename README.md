@@ -7,7 +7,9 @@ Ever wanted to have a downgraded version of https://nativedb.dotindustries.dev? 
  - git
 
 ```shell
-git clone --recursive https://github.com/SpaghettDev/gta5-python-native-db.git```
+git clone --recursive https://github.com/SpaghettDev/gta5-python-native-db.git
+```
 then
 ```shell
-python main.py```
+python main.py
+```
