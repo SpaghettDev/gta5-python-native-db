@@ -8,8 +8,10 @@ Ever wanted to have a downgraded version of https://nativedb.dotindustries.dev? 
 
 ```shell
 git clone --recursive https://github.com/SpaghettDev/gta5-python-native-db.git
-```
-then
-```shell
+// then
+cd path/to/install/folder
+// then
+python -m pip install -r requirements.txt
+// and finally
 python main.py
 ```
