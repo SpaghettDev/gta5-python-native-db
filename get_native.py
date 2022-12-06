@@ -15,7 +15,7 @@ def main():
     mode = None
 
     # Read natives file
-    with open("vendor/natives.json", "r") as file:
+    with open("vendor/gta5-nativedb-data/natives.json", "r") as file:
         file_data = init_file(file)
 
     print(
