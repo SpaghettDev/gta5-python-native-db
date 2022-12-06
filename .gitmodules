@@ -1,0 +1,3 @@
+[submodule "vendor/gta5-nativedb-data"]
+	path = vendor/gta5-nativedb-data
+	url = https://github.com/Alloc8or/gta5-nativedb-data.git
