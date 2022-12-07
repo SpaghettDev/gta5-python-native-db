@@ -3,7 +3,7 @@ Ever wanted to have a downgraded version of https://nativedb.dotindustries.dev? 
 
 ## How to use this amazing piece of work
 Have all of these:
- - Python 3.4+
+ - Python 3.9+
  - a medium to large sized human organ we call a brain
  - git
 

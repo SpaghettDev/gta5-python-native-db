@@ -3,9 +3,10 @@ from os import system
 from src.functions import (
     stop, init_file, fuzzy_lookup,
     fuzzy_lookup_refined, print_native,
-    ProgramModes, NativesStatsInstance
+    ProgramModes, NativesStatsInstance,
+    inp_to_mode
 )
-from src.log import log, LogModes
+from src.log import log, LogModes, LogTypes
 
 
 def main():
@@ -15,45 +16,42 @@ def main():
     mode = None
 
     # Read natives file
+    log("Parsing natives file...")
     with open("vendor/gta5-nativedb-data/natives.json", "r") as file:
         file_data = init_file(file)
 
-    print(
-        "Enter a native name to get its info, !clear to clear the terminal, or !exit to stop running."
+    log(
+        "Enter !clear to clear the terminal, or !exit to stop running when in a mode."
     )
 
 
-    print("What mode would you like to do?")
-    print("[0]: Searching natives")
-    print("[1]: Searching natives (within namespace)")
-    print("[2]: Stats")
-    print("[3]: Get all natives of a namespace")
-    mode_inp = input("Your slection: ")
-    if mode_inp == "0":
-        mode = ProgramModes.SEARCHING_NATIVES
-    elif mode_inp == "1":
-        mode = ProgramModes.SEARCHING_NATIVES_REFINED
-    elif mode_inp == "2":
-        mode = ProgramModes.STATS
-    elif mode_inp == "3":
-        mode = ProgramModes.GET_ALL_NATIVES_FROM_NAMESPACE
+    log("What mode would you like to do?")
+    log("[0]: Searching natives")
+    log("[1]: Searching natives (within namespace)")
+    log("[2]: Get all natives of a namespace")
+    log("[3]: Stats")
+    if (
+        (mode_inp := log("your selection: ", LogTypes.NORMAL, LogModes.ON, True))
+        in inp_to_mode.keys()
+        ):
+        mode = inp_to_mode[mode_inp]
     else:
-        log("Please enter a correct mode!", LogModes.ERROR)
+        log("Please enter a correct mode!", LogTypes.ERROR)
         stop()
 
     if mode == ProgramModes.STATS:
-        print(f"Number of natives: {NativesStatsInstance.number_of_natives}")
-        print(f"Number of namespaces: {NativesStatsInstance.number_of_namespaces}")
-        print("Namespace stats:")
+        log(f"Number of natives: {NativesStatsInstance.number_of_natives}")
+        log(f"Number of namespaces: {NativesStatsInstance.number_of_namespaces}")
+        log("Namespace stats:")
         nat_num = NativesStatsInstance.namespaces_nat_num
         nat_known = NativesStatsInstance.namespaces_nat_known
         nat_unknown = NativesStatsInstance.namespaces_nat_unknown
-        for namespace, _, _ in zip(nat_num, nat_known, nat_unknown):
-            print(
+        for namespace, nk_val, nuk_val in zip(nat_num, nat_known.values(), nat_unknown.values()):
+            log(
                 (
                     f"""{namespace} has {nat_num[namespace]} natives, """
-                    f"""of which {nat_known[namespace]} are known and """
-                    f"""{nat_unknown[namespace]} are unknown."""
+                    f"""of which {nk_val} are known and """
+                    f"""{nuk_val} are unknown."""
                 )
             )
         mode = ProgramModes.SEARCHING_NATIVES
@@ -61,19 +59,21 @@ def main():
     # Main loop
     while running:
         if mode == ProgramModes.GET_ALL_NATIVES_FROM_NAMESPACE:
-            namespace_inp = input("namespace name: ").upper()
+            namespace_inp = log("namespace name: ", LogTypes.NORMAL, LogModes.ON, True).upper()
+            namespace_lookedup = fuzzy_lookup(file_data, namespace_inp, "Couldn't find {} namespace")
             if not namespace_inp in NativesStatsInstance.namespaces_nat_num.keys():
-                print("Namespace isn't valid!")
+                log("Namespace isn't valid!", LogTypes.ERROR)
                 stop()
-            [
-                print(native_dict["meta_comment"], "\n", native_dict["func_call"])
-                for _, native_dict in file_data.items() if native_dict["namespace"] == namespace_inp
-            ]
+            for _, native_dict in file_data.items():
+                if native_dict["namespace"] == namespace_inp:
+                    log(
+                        f"""{native_dict["meta_comment"]}\n{native_dict["func_call"]}""",
+                    )
             continue
 
         if mode == ProgramModes.SEARCHING_NATIVES_REFINED:
-            namespace = input("namespace name: ")
-        inp = input("native name: ")
+            namespace = log("namespace name: ", LogTypes.NORMAL, LogModes.ON, True)
+        inp = log("native name: ", LogTypes.NORMAL, LogModes.ON, True)
 
         if inp.startswith("!c"):
             system("clear")
@@ -82,11 +82,12 @@ def main():
             stop()
 
         if mode == ProgramModes.SEARCHING_NATIVES:
-            native_gotten = fuzzy_lookup(file_data, inp.upper())
+            native_gotten = fuzzy_lookup(file_data, inp.upper(), "No native matches {}!")
         elif mode == ProgramModes.SEARCHING_NATIVES_REFINED:
             native_gotten = fuzzy_lookup_refined(file_data, inp.upper(), namespace.upper())
 
-        print_native(native_gotten)
+        if native_gotten:
+            print_native(native_gotten)
 
 
 if __name__ == "__main__":

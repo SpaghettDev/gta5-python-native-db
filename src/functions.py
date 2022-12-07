@@ -1,9 +1,9 @@
 """Helper functions and variables"""
 from json import load
-from typing import NoReturn, Any
+from typing import NoReturn, Any, Union, List
 from enum import Enum
 from Levenshtein import ratio
-from src.log import log, LogModes
+from src.log import log, LogModes, LogTypes
 from src.stats import NativesStats
 
 
@@ -15,6 +15,13 @@ class ProgramModes(Enum):
     SEARCHING_NATIVES_REFINED = 1
     STATS = 2
     GET_ALL_NATIVES_FROM_NAMESPACE = 3
+
+inp_to_mode = {
+    "0": ProgramModes.SEARCHING_NATIVES,
+    "1": ProgramModes.SEARCHING_NATIVES_REFINED,
+    "2": ProgramModes.GET_ALL_NATIVES_FROM_NAMESPACE,
+    "3": ProgramModes.STATS
+}
 
 
 def stop() -> NoReturn:
@@ -47,7 +54,7 @@ def format_native_meta_comment(native_hash, native_dict: dict) -> str:
     return f"""//{native_hash} {native_dict["jhash"]} b{native_dict["build"]}"""
 
 
-def init_file(file) -> dict:
+def init_file(file) -> dict[str, dict[str, Union[str, None, List[str]]]]:
     """Returns a better dict for parsing natives"""
     def init_native_stats_instance(namespace: str):
         """oh my lord what the hell"""
@@ -64,16 +71,16 @@ def init_file(file) -> dict:
     for namespace, native in json_f.items():
         init_native_stats_instance(namespace)
         NativesStatsInstance.number_of_namespaces += 1
-        # log(f"initing through {namespace}", LogModes.VERBOSE)
+        log(f"initing namespace {namespace}", LogTypes.NORMAL, LogModes.VERBOSE)
         for native_hash, native_dict in native.items():
             NativesStatsInstance.number_of_natives += 1
             NativesStatsInstance.namespaces_nat_num[namespace] += 1
-            if native_dict["name"].startswith("_"):
+            if native_dict["name"].startswith("_") or native_dict["name"].startswith("unk"):
                 NativesStatsInstance.namespaces_nat_unknown[namespace] += 1
             else:
                 NativesStatsInstance.namespaces_nat_known[namespace] += 1
 
-            #log(f"""initing {native_dict["name"]}""", LogModes.VERBOSE)
+            log(f"""initing native {native_dict["name"]}""", LogTypes.NORMAL, LogModes.VERBOSE)
             return_dict[native_dict["name"]] = {
                 "namespace": namespace,
                 "hash": native_hash,
@@ -89,33 +96,41 @@ def init_file(file) -> dict:
     return return_dict
 
 
-def fuzzy_lookup(dict_: dict, query) -> Any:
+def fuzzy_lookup(dict_: dict, query: Any, err_message: str) -> Union[Any, None]:
         """Basic implementation of a fuzzy lookup of a dictionary"""
         levs = [(key, ratio(query, key)) for key in dict_.keys()]
-        key, _ = max(levs, key=lambda lev: lev[1])
-        return dict_.get(key)
+        key, key_ratio = max(levs, key=lambda lev: lev[1])
+
+        if key_ratio == 0.0:
+            log(err_message.replace("{}", query, 1), LogTypes.ERROR)
+        else:
+            return dict_.get(key)
 
 
-def fuzzy_lookup_refined(dict_: dict, query, namespace: str) -> Any:
+def fuzzy_lookup_refined(dict_: dict, query: Any, namespace: str) -> Union[Any, None]:
         """Basic implementation of a fuzzy lookup of a dictionary modified
         to search for a query within a namespace"""
         if not namespace in NativesStatsInstance.namespaces_nat_num.keys():
-            print("Namespace isn't valid!")
-            stop()
+            log("Namespace isn't valid!", LogTypes.ERROR)
+            return
 
         levs = [
             (key, ratio(query, key)) for key in dict_.keys() if dict_[key]["namespace"] == namespace
         ]
-        key, _ = max(levs, key=lambda lev: lev[1])
-        return dict_.get(key)
+        key, key_ratio = max(levs, key=lambda lev: lev[1])
+
+        if key_ratio == 0.0:
+            log(f"No native matches {query} in {namespace}!", LogTypes.ERROR)
+        else:
+            return dict_.get(key)
 
 
 def print_native(dict_: dict):
     """Prints native information"""
-    print(dict_["meta_comment"])
-    print(dict_["func_call"])
-    print("Namespace:", dict_["namespace"])
-    print("Comment:", dict_["comment"])
+    log(dict_["meta_comment"])
+    log(dict_["func_call"])
+    log(f"""Namespace: {dict_["namespace"]}""")
+    log(f"""Comment: {dict_["comment"]}""")
     if len(dict_["old_names"]):
-        print("Old names:", ", ".join(dict_["old_names"]))
-    print()
+        log(f"""Old names: {", ".join(dict_["old_names"])}""")
+    log("")
