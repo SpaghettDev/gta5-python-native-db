@@ -25,7 +25,7 @@ def main():
     )
 
 
-    log("What mode would you like to do?")
+    log("What mode would you like to use?")
     log("[0]: Searching natives")
     log("[1]: Searching natives (within namespace)")
     log("[2]: Get all natives of a namespace")
@@ -60,15 +60,11 @@ def main():
     while running:
         if mode == ProgramModes.GET_ALL_NATIVES_FROM_NAMESPACE:
             namespace_inp = log("namespace name: ", LogTypes.NORMAL, LogModes.ON, True).upper()
-            namespace_lookedup = fuzzy_lookup(file_data, namespace_inp, "Couldn't find {} namespace")
-            if not namespace_inp in NativesStatsInstance.namespaces_nat_num.keys():
-                log("Namespace isn't valid!", LogTypes.ERROR)
-                stop()
-            for _, native_dict in file_data.items():
-                if native_dict["namespace"] == namespace_inp:
-                    log(
-                        f"""{native_dict["meta_comment"]}\n{native_dict["func_call"]}""",
-                    )
+            namespace_lookedup = fuzzy_lookup_refined(file_data, "", namespace_inp, True)
+            for _, tup in enumerate(namespace_lookedup):
+                log(
+                    f"""{file_data[tup[0]]["meta_comment"]}\n{file_data[tup[0]]["func_call"]}""",
+                )
             continue
 
         if mode == ProgramModes.SEARCHING_NATIVES_REFINED:
