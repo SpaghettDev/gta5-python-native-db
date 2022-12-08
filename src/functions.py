@@ -55,7 +55,7 @@ def format_native_meta_comment(
     native_dict: NativeDictType
     ) -> str:
     """Formats a native dict to the comment above a native in nativedb"""
-    return f"""//{native_hash} {native_dict["jhash"]} b{native_dict["build"]}"""
+    return f"""// {native_hash} {native_dict["jhash"]} b{native_dict["build"]}"""
 
 
 def init_file(file) -> NativeDictType:
