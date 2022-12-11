@@ -1,13 +1,12 @@
 """Helper functions and variables"""
 from json import load
-from typing import NoReturn, Any, Union
+from typing import Optional, Union, NoReturn
 from enum import Enum
-from Levenshtein import ratio
 from src.log import log, LogModes, LogTypes
 from src.stats import NativesStats
 
 
-NativeDictType = dict[str, dict[str, Union[str, None, list[str]]]]
+NativeDictType = dict[str, dict[str, Optional[Union[str, list[str]]]]]
 NativesStatsInstance = NativesStats()
 
 
@@ -109,49 +108,25 @@ def init_file(file) -> NativeDictType:
     return return_dict
 
 
-def fuzzy_lookup(dict_: dict, query: Any, err_message: str) -> Union[Any, None]:
-        """Basic implementation of a fuzzy lookup of a dictionary"""
-        levs = [(key, ratio(query, key)) for key in dict_.keys()]
-        key, key_ratio = max(levs, key=lambda lev: lev[1])
-
-        if key_ratio == 0.0:
-            log(err_message.replace("{}", query, 1), LogTypes.ERROR)
-        else:
-            return dict_.get(key)
-
-
-def fuzzy_lookup_refined(
-    dict_: dict,
-    query: Any,
-    namespace: str,
-    get_all: bool = False
-    ) -> Union[Any, list[NativeDictType], None]:
-        """Basic implementation of a fuzzy lookup of a dictionary modified
-        to search for a query within a namespace"""
-        if not namespace in NativesStatsInstance.namespaces_nat_num.keys():
-            log("Namespace isn't valid!", LogTypes.ERROR)
-            return
-
-        levs = [
-            (key, ratio(query, key)) for key in dict_.keys() if dict_[key]["namespace"] == namespace
-        ]
-        key, key_ratio = max(levs, key=lambda lev: lev[1])
-
-        if get_all:
-            return levs
-
-        if key_ratio == 0.0:
-            log(f"No native matches {query} in {namespace}!", LogTypes.ERROR)
-        else:
-            return dict_.get(key)
-
-
-def print_native(dict_: dict):
+def print_native(native_dict: NativeDictType):
     """Prints native information"""
-    log(dict_["meta_comment"])
-    log(dict_["func_call"])
-    log(f"""Namespace: {dict_["namespace"]}""")
-    log(f"""Comment: {dict_["comment"]}""")
-    if len(dict_["old_names"]):
-        log(f"""Old names: {", ".join(dict_["old_names"])}""")
+    log(native_dict["meta_comment"])
+    log(native_dict["func_call"])
+    log(f"""Namespace: {native_dict["namespace"]}""")
+    log(f"""Comment: {native_dict["comment"]}""")
+    if len(native_dict["old_names"]) > 0:
+        log(f"""Old names: {", ".join(native_dict["old_names"])}""")
     log("")
+
+
+def pluralify(string: str, plural: str, num_elem: int) -> str:
+    """very simple function that functions :)
+    Args:
+        string (str): string
+        plural (str): plural of string
+        num_elem (int): if > 1 returns plural else string
+
+    Returns:
+        str
+    """
+    return plural if num_elem > 1 else string

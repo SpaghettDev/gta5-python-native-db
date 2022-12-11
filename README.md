@@ -16,3 +16,11 @@ python -m pip install -r requirements.txt
 # and finally
 python main.py
 ```
+
+## What does it have?
+It has:
+ - The ability to search natives (with fuzzy search)
+ - The ability to search natives within a namespace (with fuzzy search)
+ - The ability to get all natives of a namespace (with fuzzy search)
+ - Stats (with fuzzy search (definitely))
+ - Fuzzy Search (fuzzy search) (its the only strong suit of this repo)

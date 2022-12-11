@@ -1,7 +1,7 @@
 """very simple logging mini-module"""
 from enum import Enum
 from datetime import datetime
-from typing import Union
+from typing import Union, Any
 
 
 class LogModes(Enum):
@@ -45,8 +45,8 @@ def colorify(val: str, color: str) -> str:
 
 
 def log(
-    message: str,
-    type: LogTypes = LogTypes.NORMAL,
+    message: Any,
+    type_of_log: LogTypes = LogTypes.NORMAL,
     mode: LogModes = LOGGING_MODE,
     is_inp: bool = False,
     color: Union[str, None] = None
@@ -54,8 +54,8 @@ def log(
     """Logs message if logging is on, and logs time if verbose
 
     Args:
-        * message (str): the message to log.
-        * type (LogTypes): the type of the log (either NORMAL or ERROR), defaults to NORMAL
+        * message (Any): the message to log.
+        * type_of_log (LogTypes): the type of the log (either NORMAL or ERROR), defaults to NORMAL
         * mode (LogModes): the mode, verbose, etc, defaults to LOGGING_MODE
         * is_input (bool): should we ask for input after logging, defaults to False
         * color (str | None): the color of the log, defaults to None
@@ -67,7 +67,7 @@ def log(
         if not color:
             print(
                 colorify(message, "red")
-                if type == LogTypes.ERROR
+                if type_of_log == LogTypes.ERROR
                 else colorify(message, "byellow"),
                 end="" if is_inp else "\n"
             )
@@ -85,7 +85,7 @@ def log(
         if not color:
             print(
                 colorify(verbose_message, "red")
-                if type == LogTypes.ERROR
+                if type_of_log == LogTypes.ERROR
                 else colorify(verbose_message, "cyan"),
                 end="" if is_inp else "\n"
             )
