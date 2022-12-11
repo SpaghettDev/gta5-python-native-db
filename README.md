@@ -8,7 +8,7 @@ Have all of these:
  - git
 
 ```shell
-git clone --recursive https://github.com/SpaghettDev/gta5-python-native-db.git
+git clone https://github.com/SpaghettDev/gta5-python-native-db.git --recursive
 # then
 cd path/to/install/folder
 # then
